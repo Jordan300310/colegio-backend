@@ -125,10 +125,12 @@ Solo `exito` y `mensaje`.
 |---|---|---|---|
 | `id` | `number` | ✅ | ID del usuario. Va en la URL, sin body |
 
-#### Recibe — `datos: null`
-Solo `exito` y `mensaje`.
+#### Recibe — `datos: RecuperarCredencialesResponse`
+| Campo | Tipo | Descripción |
+|----------|-------|------|
+| `correo` | `string` | Correo del usuario afectado|
+| `contrasenaTemporal` | `string` | Nueva contraseña temporal generada — el admin debe comunicarla al usuario|
 
----
 
 ## 👥 Módulo Usuarios — `/usuarios`
 
