@@ -1,6 +1,5 @@
 package com.cursoonline.exception;
 
-import com.cursoonline.dto.auth.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +8,18 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.cursoonline.dto.common.ApiResponse;
+import com.cursoonline.exception.academico.*;
+import com.cursoonline.exception.academico.AnioEscolarNoEncontradoException;
+import com.cursoonline.exception.academico.CursoNoEncontradoException;
+import com.cursoonline.exception.academico.NivelNoEncontradoException;
+import com.cursoonline.exception.academico.SeccionNoEncontradaException;
 import com.cursoonline.exception.auth.*;
+import com.cursoonline.exception.usuario.CorreoDuplicadoException;
+import com.cursoonline.exception.usuario.RolNoEncontradoException;
+import com.cursoonline.exception.usuario.UsuarioNoEncontradoException;
+
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -79,5 +89,40 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
         return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler({
+    NivelNoEncontradoException.class,
+    CursoNoEncontradoException.class,
+    SeccionNoEncontradaException.class,
+    AnioEscolarNoEncontradoException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleAcademicoNotFound(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CursoYaExisteException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCursoExiste(CursoYaExisteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SeccionYaExisteException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSeccionExiste(SeccionYaExisteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProfesorYaAsignadoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProfesorAsignado(ProfesorYaAsignadoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(UsuarioNoEsProfesorException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoEsProfesor(UsuarioNoEsProfesorException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 }
