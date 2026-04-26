@@ -9,10 +9,14 @@ import com.cursoonline.exception.academico.CursoYaExisteException;
 import com.cursoonline.exception.academico.NivelNoEncontradoException;
 import com.cursoonline.repository.academico.CatCursoRepository;
 import com.cursoonline.repository.academico.CatNivelRepository;
+import com.cursoonline.repository.academico.RelAlumnoSeccionRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +29,7 @@ public class CursoService {
 
     private final CatCursoRepository cursoRepository;
     private final CatNivelRepository nivelRepository;
+    private final RelAlumnoSeccionRepository alumnoSeccionRepository;
 
     public Page<CursoResponse> listar(Pageable pageable) {
         return cursoRepository.findByEstActivoTrue(pageable).map(this::toResponse);
@@ -116,4 +121,22 @@ public class CursoService {
                 c.getFecPublicacion()
         );
     }
+    public Page<CursoResponse> listarPublicadosPorAlumno(Integer idUsuario, Pageable pageable) {
+    // Re-mapeamos el Sort para que apunte al alias 'c' (CatCurso) en vez del root 'ras' (RelAlumnoSeccion)
+    Sort sortRemapeado = Sort.by(
+            pageable.getSort().stream()
+                    .map(order -> new Sort.Order(order.getDirection(), "c." + order.getProperty()))
+                    .toList()
+    );
+
+    Pageable pageableCorregido = PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            sortRemapeado.isEmpty() ? Sort.by("c.desNombre").ascending() : sortRemapeado
+    );
+
+    return alumnoSeccionRepository
+            .findCursosPublicadosByAlumno(idUsuario, pageableCorregido)
+            .map(this::toResponse);
+}
 }

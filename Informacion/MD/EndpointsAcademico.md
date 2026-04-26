@@ -158,6 +158,22 @@ Detalle completo del curso.
 El curso recién creado con `estPublicado: false` por defecto.
 
 ---
+### `GET /cursos/mis-cursos`
+**Acceso:** 🔒 Solo `ROL_ALUMNO`
+
+#### Envía — parámetros en la URL
+| Parámetro | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `page` | `number` | ❌ | Página (0-based). Default: `0` |
+| `size` | `number` | ❌ | Cantidad por página. Default: `10` |
+| `sort` | `string` | ❌ | Campo a ordenar. Default: `desNombre` |
+
+> 💡 **Nota:** El ID del alumno no se envía en los parámetros, se extrae automáticamente del token de autenticación del usuario.
+
+#### Recibe — `datos: Page<CursoResponse>`
+Devuelve los cursos publicados de las secciones donde el alumno autenticado está inscrito activamente. 
+
+La respuesta utiliza exactamente la misma estructura de paginación y el objeto `CursoResponse` detallado en el endpoint `GET /cursos`.
 
 ### `PUT /cursos/{id}`
 **Acceso:** 🔒 Solo `ROL_ADMIN`

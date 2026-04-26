@@ -16,7 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import com.cursoonline.entity.auth.SegUsuario;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 @RestController
 @RequestMapping("/cursos")
 @RequiredArgsConstructor
@@ -91,4 +92,21 @@ public class CursoController {
                 ApiResponse.ok("Curso despublicado correctamente.", cursoService.despublicar(id))
         );
     }
+    @Operation(
+    summary     = "CUS-11 · Mis cursos — Solo ALUMNO",
+    description = "Devuelve los cursos publicados de las secciones donde el alumno autenticado está inscrito activamente."
+)
+@GetMapping("/mis-cursos")
+@PreAuthorize("hasAuthority('ROL_ALUMNO')")
+public ResponseEntity<ApiResponse<Page<CursoResponse>>> misCursos(
+        @AuthenticationPrincipal SegUsuario alumno,
+        @PageableDefault(size = 10, sort = "desNombre") Pageable pageable) {
+
+    return ResponseEntity.ok(
+            ApiResponse.ok(
+                "Cursos del alumno obtenidos correctamente.",
+                cursoService.listarPublicadosPorAlumno(alumno.getIdUsuario(), pageable)
+            )
+    );
+}
 }
