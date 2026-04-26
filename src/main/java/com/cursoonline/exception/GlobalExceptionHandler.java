@@ -8,13 +8,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import com.cursoonline.dto.common.ApiResponse;
 import com.cursoonline.exception.academico.*;
-import com.cursoonline.exception.academico.AnioEscolarNoEncontradoException;
-import com.cursoonline.exception.academico.CursoNoEncontradoException;
-import com.cursoonline.exception.academico.NivelNoEncontradoException;
-import com.cursoonline.exception.academico.SeccionNoEncontradaException;
 import com.cursoonline.exception.auth.*;
 import com.cursoonline.exception.usuario.CorreoDuplicadoException;
 import com.cursoonline.exception.usuario.RolNoEncontradoException;
@@ -125,4 +121,60 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+    @ExceptionHandler(ModuloNoEncontradoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleModuloNotFound(ModuloNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ModuloYaExisteException.class)
+    public ResponseEntity<ApiResponse<Void>> handleModuloExiste(ModuloYaExisteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccesoCursoDenegadoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccesoCursoDenegado(AccesoCursoDenegadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(ex.getMessage()));
+    }
+    @ExceptionHandler(LeccionNoEncontradaException.class)
+    public ResponseEntity<ApiResponse<Void>> handleLeccionNotFound(LeccionNoEncontradaException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(LeccionYaExisteException.class)
+    public ResponseEntity<ApiResponse<Void>> handleLeccionExiste(LeccionYaExisteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(ex.getMessage()));
+    }
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRecursoNotFound(RecursoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(TipoRecursoNoEncontradoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTipoRecursoNotFound(TipoRecursoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(RecursoInvalidoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRecursoInvalido(RecursoInvalidoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ArchivoInvalidoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleArchivoInvalido(ArchivoInvalidoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ArchivoNoEncontradoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleArchivoNoEncontrado(ArchivoNoEncontradoException ex) {
+        log.warn("Archivo físico no encontrado: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.error("El archivo supera el tamaño máximo permitido."));
+    }
+
+    
 }

@@ -26,4 +26,16 @@ public interface RelAlumnoSeccionRepository extends JpaRepository<RelAlumnoSecci
     Page<CatCurso> findCursosPublicadosByAlumno(
             @Param("idUsuario") Integer idUsuario,
             Pageable pageable);
+
+    @Query("""
+       SELECT COUNT(ras) > 0
+       FROM   RelAlumnoSeccion ras
+       WHERE  ras.alumno.idUsuario       = :idUsuario
+         AND  ras.seccion.curso.idCurso  = :idCurso
+         AND  ras.estActivo              = true
+         AND  ras.seccion.estActiva      = true
+       """)
+boolean alumnoTieneAccesoACurso(
+        @Param("idUsuario") Integer idUsuario,
+        @Param("idCurso") Integer idCurso);        
 }
