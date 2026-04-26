@@ -4,6 +4,7 @@ import com.cursoonline.dto.usuario.request.ActualizarEstadoRequest;
 import com.cursoonline.dto.usuario.request.ActualizarRolRequest;
 import com.cursoonline.dto.usuario.response.CargaMasivaResponse;
 import com.cursoonline.dto.usuario.response.UsuarioResponse;
+import com.cursoonline.dto.usuario.response.CargaMasivaResponse.CredencialAlumno;
 import com.cursoonline.dto.usuario.response.CargaMasivaResponse.ErrorFila;
 import com.cursoonline.entity.auth.CatRol;
 import com.cursoonline.entity.auth.SegUsuario;
@@ -153,6 +154,7 @@ public class UsuarioService {
 
     private CargaMasivaResponse procesarExcel(MultipartFile archivo) {
         List<ErrorFila> errores = new ArrayList<>();
+        List<CredencialAlumno> credenciales = new ArrayList<>();
         int exitosos = 0;
         int fila = 2; // fila 1 = cabecera
 
@@ -189,7 +191,8 @@ public class UsuarioService {
                     continue;
                 }
 
-                guardarAlumno(nombres, apellidos, correo, rolAlumno);
+                String contrasenaTemp = guardarAlumno(nombres, apellidos, correo, rolAlumno);
+                credenciales.add(new CredencialAlumno(correo, nombres, apellidos, contrasenaTemp));
                 exitosos++;
             }
 
@@ -201,13 +204,20 @@ public class UsuarioService {
         }
 
         registrarLogCargaMasiva(exitosos, errores.size());
-        return new CargaMasivaResponse(exitosos + errores.size(), exitosos, errores.size(), errores);
+        return new CargaMasivaResponse(
+                exitosos + errores.size(),
+                exitosos,
+                errores.size(),
+                credenciales,
+                errores
+        );
     }
 
     // ── Procesamiento CSV ─────────────────────────────────────────────────────
 
     private CargaMasivaResponse procesarCsv(MultipartFile archivo) {
         List<ErrorFila> errores = new ArrayList<>();
+        List<CredencialAlumno> credenciales = new ArrayList<>();
         int exitosos = 0;
         int fila = 2;
 
@@ -249,7 +259,8 @@ public class UsuarioService {
                     continue;
                 }
 
-                guardarAlumno(nombres, apellidos, correo, rolAlumno);
+                String contrasenaTemp = guardarAlumno(nombres, apellidos, correo, rolAlumno);
+                credenciales.add(new CredencialAlumno(correo, nombres, apellidos, contrasenaTemp));
                 exitosos++;
                 fila++;
             }
@@ -262,12 +273,18 @@ public class UsuarioService {
         }
 
         registrarLogCargaMasiva(exitosos, errores.size());
-        return new CargaMasivaResponse(exitosos + errores.size(), exitosos, errores.size(), errores);
+        return new CargaMasivaResponse(
+                exitosos + errores.size(),
+                exitosos,
+                errores.size(),
+                credenciales,
+                errores
+        );
     }
 
     // ── Helpers privados ──────────────────────────────────────────────────────
 
-    private void guardarAlumno(String nombres, String apellidos, String correo, CatRol rol) {
+    private String guardarAlumno(String nombres, String apellidos, String correo, CatRol rol) {
         String contrasena = generarContrasenaAleatoria();
         SegUsuario alumno = SegUsuario.builder()
                 .rol(rol)
@@ -280,6 +297,7 @@ public class UsuarioService {
                 .build();
         usuarioRepository.save(alumno);
         log.debug("Alumno registrado (carga masiva) → {}", correo);
+        return contrasena;
     }
 
     private String validarFila(String nombres, String apellidos, String correo) {

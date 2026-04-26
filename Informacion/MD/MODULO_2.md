@@ -255,7 +255,62 @@ El curso con `estPublicado: false` y `fecPublicacion: null`.
 | `desProfesor` | `string` \| `null` | Nombre completo del profesor. `null` si no tiene |
 
 ---
+### `GET /secciones/{idSeccion}/alumnos`
+**Acceso:** 🔒 `ROL_ADMIN` o `ROL_PROFESOR`
 
+#### Envía
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `idSeccion` | `number` | ✅ | ID de la sección. Va en la URL |
+
+#### Recibe — `datos: InscripcionAlumnoResponse[]`
+Lista ordenada por apellido del alumno.
+
+**`InscripcionAlumnoResponse`:**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `idAlumnoSeccion` | `number` | ID del registro de inscripción |
+| `idUsuario` | `number` | ID del alumno |
+| `desNombres` | `string` | Nombres del alumno |
+| `desApellidos` | `string` | Apellidos del alumno |
+| `desCorreo` | `string` | Correo del alumno |
+| `idSeccion` | `number` | ID de la sección |
+| `desSeccion` | `string` | Nombre de la sección |
+| `estActivo` | `boolean` | Si la inscripción está activa |
+| `fecInscripcion` | `string` (datetime) | Fecha de inscripción |
+
+---
+
+### `POST /secciones/{idSeccion}/alumnos`
+**Acceso:** 🔒 Solo `ROL_ADMIN`
+
+#### Envía
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `idSeccion` | `number` | ✅ | ID de la sección. Va en la URL |
+| `idUsuario` | `number` | ✅ | ID del usuario con rol `ROL_ALUMNO` |
+
+#### Recibe — `datos: InscripcionAlumnoResponse`
+La inscripción recién creada con `estActivo: true`.
+
+> ⚠️ El usuario debe tener `ROL_ALUMNO`. Si ya está inscrito en esta sección o en otra del mismo año escolar devuelve `409`.
+
+---
+
+### `DELETE /secciones/{idSeccion}/alumnos/{idUsuario}`
+**Acceso:** 🔒 Solo `ROL_ADMIN`
+
+> ⚠️ Eliminación lógica. Pone `estActivo: false`. Si después se vuelve a inscribir al alumno, se crea una nueva fila.
+
+#### Envía
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `idSeccion` | `number` | ✅ | ID de la sección. Va en la URL |
+| `idUsuario` | `number` | ✅ | ID del alumno. Va en la URL. Sin body |
+
+#### Recibe — `datos: null`
+Solo `exito` y `mensaje`.
+---
 ### `GET /secciones/curso/{idCurso}`
 **Acceso:** 🔒 Autenticado
 
@@ -369,3 +424,8 @@ La sección con `idProfesor: null` y `desProfesor: null`.
 | `409` | `"Ya existe un curso con el nombre 'X'."` | Nombre duplicado |
 | `409` | `"Ya existe una sección con el nombre 'X' en ese curso y año escolar."` | Sección duplicada |
 | `409` | `"Esta sección ya tiene un profesor asignado."` | Asignación duplicada |
+| `400` | `"El usuario con ID X no tiene rol de alumno."` | Inscribir un no-alumno |
+| `404` | `"No existe una inscripción activa del alumno X en la sección Y."` | Dar de baja una inscripción inexistente |
+| `404` | `"Usuario con ID X no encontrado."` | Inscribir usuario inexistente |
+| `409` | `"El alumno ya está inscrito activamente en esta sección."` | Inscripción duplicada en la misma sección |
+| `409` | `"El alumno ya está inscrito en otra sección del mismo año escolar."` | Regla: un alumno = una sección por año |

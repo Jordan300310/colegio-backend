@@ -232,7 +232,16 @@ Estructura requerida del archivo:
 | `totalProcesados` | `number` | Total de filas leídas en el archivo |
 | `exitosos` | `number` | Cantidad de alumnos registrados |
 | `fallidos` | `number` | Cantidad de filas con error |
+| `credenciales` | `CredencialAlumno[]` | Credenciales generadas por cada alumno registrado con éxito |
 | `errores` | `ErrorFila[]` | Detalle de cada fila fallida |
+
+**`CredencialAlumno`:**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `correo` | `string` | Correo del alumno |
+| `nombres` | `string` | Nombres del alumno |
+| `apellidos` | `string` | Apellidos del alumno |
+| `contrasenaTemporal` | `string` | Contraseña a comunicar al alumno. Cambio forzado en primer login |
 
 **`ErrorFila`:**
 | Campo | Tipo | Descripción |
@@ -241,7 +250,9 @@ Estructura requerida del archivo:
 | `correo` | `string` | Correo de la fila procesada |
 | `motivo` | `string` | Razón del error |
 
----
+> 💡 **Tip frontend:** ofrecer un botón "Descargar credenciales" tras la carga que genere un CSV con los datos para distribución masiva al alumnado.
+> 
+> ⚠️ **Importante:** las contraseñas viajan en texto plano en este response. Solo accesible al admin que ejecutó la carga. Asegurar HTTPS en producción.
 
 ## ❌ Errores globales
 

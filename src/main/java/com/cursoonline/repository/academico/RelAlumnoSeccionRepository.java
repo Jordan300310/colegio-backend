@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import java.util.*;
 @Repository
 public interface RelAlumnoSeccionRepository extends JpaRepository<RelAlumnoSeccion, Integer> {
 
@@ -38,4 +38,21 @@ public interface RelAlumnoSeccionRepository extends JpaRepository<RelAlumnoSecci
 boolean alumnoTieneAccesoACurso(
         @Param("idUsuario") Integer idUsuario,
         @Param("idCurso") Integer idCurso);        
+
+        Optional<RelAlumnoSeccion> findByAlumno_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(
+        Integer idUsuario, Integer idSeccion);
+        List<RelAlumnoSeccion> findBySeccion_IdSeccionAndEstActivoTrueOrderByAlumno_DesApellidos(
+        Integer idSeccion);
+
+        @Query("""
+       SELECT COUNT(ras) > 0
+       FROM   RelAlumnoSeccion ras
+       WHERE  ras.alumno.idUsuario                  = :idUsuario
+         AND  ras.seccion.anioEscolar.idAnioEscolar = :idAnioEscolar
+         AND  ras.estActivo                         = true
+         AND  ras.seccion.estActiva                 = true
+       """)
+boolean alumnoTieneInscripcionEnAnio(
+        @Param("idUsuario") Integer idUsuario,
+        @Param("idAnioEscolar") Integer idAnioEscolar);
 }

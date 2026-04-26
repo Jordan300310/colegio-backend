@@ -176,5 +176,20 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("El archivo supera el tamaño máximo permitido."));
     }
 
+    @ExceptionHandler(AlumnoYaInscritoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAlumnoYaInscrito(AlumnoYaInscritoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InscripcionNoEncontradaException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInscripcionNotFound(InscripcionNoEncontradaException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(UsuarioNoEsAlumnoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUsuarioNoEsAlumno(UsuarioNoEsAlumnoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
+    }
+
     
 }
