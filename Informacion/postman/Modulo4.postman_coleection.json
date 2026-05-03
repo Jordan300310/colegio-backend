@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "API Cursos Online - Módulo 4: Progreso",
-    "description": "Colección completa de pruebas para el Módulo 4: Seguimiento de progreso del alumno (CUS-14) y Tablero grupal del profesor (CUS-15).",
+    "description": "Colección completa de pruebas para el Módulo 4: Seguimiento de progreso del alumno (CUS-14), Tablero grupal (CUS-15) y Detalle individual (CUS-16).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -78,10 +78,10 @@
       ]
     },
     {
-      "name": "Tablero Grupal (Profesor)",
+      "name": "Gestión y Tableros (Profesor)",
       "item": [
         {
-          "name": "1. Obtener Tablero de Sección",
+          "name": "1. Obtener Tablero de Sección (CUS-15)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -118,12 +118,56 @@
               "variable": [
                 {
                   "key": "idSeccion",
-                  "value": "10",
+                  "value": "1",
                   "description": "ID de la sección a consultar"
                 }
               ]
             },
             "description": "Obtiene el tablero de avance grupal de una sección (CUS-15). Requiere ROL_PROFESOR y tener acceso al curso de la sección."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Obtener Detalle de Alumno (CUS-16)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_profesor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/progreso/alumno/:idAlumno/curso/:idCurso",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "progreso",
+                "alumno",
+                ":idAlumno",
+                "curso",
+                ":idCurso"
+              ],
+              "variable": [
+                {
+                  "key": "idAlumno",
+                  "value": "12",
+                  "description": "ID del alumno a consultar"
+                },
+                {
+                  "key": "idCurso",
+                  "value": "3",
+                  "description": "ID del curso a consultar"
+                }
+              ]
+            },
+            "description": "Obtiene el detalle individual y el historial completo de un alumno en un curso específico (CUS-16). Requiere ROL_PROFESOR."
           },
           "response": []
         }

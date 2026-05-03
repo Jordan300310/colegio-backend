@@ -107,7 +107,47 @@ Lista de cursos en los que el alumno está inscrito.
 | `ultimaActividad` | `string` (datetime) \| `null`| Fecha del último progreso registrado |
 
 ---
+### `GET /progreso/alumno/{idAlumno}/curso/{idCurso}`
+**Acceso:** 🔒 `ROL_PROFESOR` (Debe tener acceso validado al curso y el alumno debe estar inscrito)
 
+> 📊 **Detalle Individual del Alumno (CUS-16):** Permite al docente ver el historial completo de un alumno específico dentro de un curso. Devuelve todas las lecciones publicadas, indicando claramente cuáles han sido completadas y calculando el avance basado solo en lecciones obligatorias.
+
+#### Parámetros
+| Parámetro | Tipo | Ubicación | Descripción |
+|---|---|---|---|
+| `idAlumno` | `number` | Path | ID del usuario alumno a consultar. |
+| `idCurso`  | `number` | Path | ID del curso sobre el cual se consulta el progreso. |
+
+#### Recibe — `datos: DetalleProgresoAlumnoResponse`
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `alumno` | `AlumnoResumenResponse` | Datos básicos: `idAlumno`, `nombres`, `apellidos`, `correo` |
+| `idCurso` | `number` | ID del curso consultado |
+| `nombreCurso` | `string` | Nombre del curso |
+| `totalLeccionesObligatorias` | `number` | Total de lecciones obligatorias en el curso |
+| `leccionesCompletadas` | `number` | Lecciones obligatorias completadas por este alumno |
+| `porcentajeAvance` | `number` | Avance global (ej: `60.0`) |
+| `ultimaActividad` | `string` (datetime) \| `null`| Fecha del último progreso en este curso |
+| `modulos` | `ModuloDetalleResponse[]` | Lista de módulos con el desglose de lecciones |
+| `evaluaciones` | `array` | *(Reservado para integración futura - Módulo 5)* |
+
+**`ModuloDetalleResponse`:**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `idModulo` | `number` | ID del módulo |
+| `nombre` | `string` | Nombre del módulo |
+| `lecciones` | `LeccionEstadoResponse[]` | Lista de todas las lecciones publicadas |
+
+**`LeccionEstadoResponse`:**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `idLeccion` | `number` | ID de la lección |
+| `nombre` | `string` | Nombre de la lección |
+| `obligatoria` | `boolean` | Indica si es requerida para el porcentaje de avance |
+| `completada` | `boolean` | `true` si el alumno ya la finalizó, `false` si no la ha tocado |
+| `fecCompletado` | `string` (datetime) \| `null` | Fecha en que la completó (si aplica) |
+
+---
 ## 3. Errores y Casos de Prueba
 
 Todos los errores mantienen el estándar de devolver `exito: false`, `datos: null` y un `mensaje` descriptivo.
@@ -119,6 +159,9 @@ Todos los errores mantienen el estándar de devolver `exito: false`, `datos: nul
 | `POST /leccion/{id}/completar` | `404` | `"Lección con ID X no encontrada o no está publicada."` |
 | `GET /seccion/{idSeccion}` | `403` | `"Acceso denegado al curso."` (Si el profesor no tiene el curso asignado) |
 | `GET /seccion/{idSeccion}` | `404` | `"Sección con ID X no encontrada."` |
+| `GET /alumno/{id}/curso/{id}` | `400` | `"El usuario con ID X no tiene rol de alumno."` |
+| `GET /alumno/{id}/curso/{id}` | `403` | `"No tienes permiso para gestionar contenido de este curso."` (Si el profesor no está asignado o el alumno no está inscrito) |
+| `GET /alumno/{id}/curso/{id}` | `404` | `"Usuario no encontrado"` o `"Curso no encontrado"` |
 | Todos | `401` | Sin token o token expirado. |
 
 ### 🧪 Matriz de Pruebas (QA - Postman)
@@ -129,3 +172,7 @@ Todos los errores mantienen el estándar de devolver `exito: false`, `datos: nul
 | **GET** mi-progreso | Alumno | Alumno tras completar lecciones | `200 OK` | `valPorcentaje` recalculado y módulo en `EN_CURSO` o `COMPLETADO`. |
 | **GET** seccion | Profesor | Sección válida con alumnos | `200 OK` | Devuelve el objeto paginado `Page<FilaTableroResponse>`. |
 | **GET** seccion | Profesor | Sección de otro profesor | `403 Forbidden` | Bloqueado por `validarAccesoProfesorACurso()`. |
+| **GET** detalle | Profesor | Parámetros válidos y con permisos | `200 OK` | Devuelve JSON con historial completo agrupado por módulos. |
+| **GET** detalle | Profesor | Alumno nuevo sin actividad | `200 OK` | Retorna datos. Todas las lecciones tienen `completada: false` y `porcentajeAvance: 0.0`. |
+| **GET** detalle | Profesor | Consultar ID de otro Profesor/Admin | `400 Bad Request` | Bloqueado por `UsuarioNoEsAlumnoException`. |
+| **GET** detalle | Alumno | Intentar ver progreso de otro | `403 Forbidden` | Spring Security bloquea acceso por falta de rol. |
