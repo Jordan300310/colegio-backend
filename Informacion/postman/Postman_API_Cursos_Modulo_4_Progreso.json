@@ -1,12 +1,12 @@
 {
   "info": {
     "name": "API Cursos Online - Módulo 4: Progreso",
-    "description": "Colección de pruebas para el Sub-bloque 4.1: Seguimiento de progreso del alumno.",
+    "description": "Colección completa de pruebas para el Módulo 4: Seguimiento de progreso del alumno (CUS-14) y Tablero grupal del profesor (CUS-15).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Progreso de Lecciones",
+      "name": "Progreso de Lecciones (Alumno)",
       "item": [
         {
           "name": "1. Completar Lección",
@@ -76,6 +76,58 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Tablero Grupal (Profesor)",
+      "item": [
+        {
+          "name": "1. Obtener Tablero de Sección",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_profesor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/progreso/seccion/:idSeccion?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "progreso",
+                "seccion",
+                ":idSeccion"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "idSeccion",
+                  "value": "10",
+                  "description": "ID de la sección a consultar"
+                }
+              ]
+            },
+            "description": "Obtiene el tablero de avance grupal de una sección (CUS-15). Requiere ROL_PROFESOR y tener acceso al curso de la sección."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [
@@ -107,6 +159,11 @@
     {
       "key": "token",
       "value": "pega_tu_token_jwt_de_alumno_aqui",
+      "type": "string"
+    },
+    {
+      "key": "token_profesor",
+      "value": "pega_tu_token_jwt_de_profesor_aqui",
       "type": "string"
     }
   ]
