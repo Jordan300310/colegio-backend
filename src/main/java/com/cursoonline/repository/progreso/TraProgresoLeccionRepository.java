@@ -151,4 +151,21 @@ interface HistorialLeccionView {
     Boolean       getCompletada();
     LocalDateTime getFecCompletado();
 }
+@Query("""
+    SELECT COUNT(l)
+    FROM   TraLeccion l
+    WHERE  l.modulo.idModulo = :idModulo
+      AND  l.estObligatoria = true
+      AND  l.estPublicada   = true
+      AND  l.estActiva      = true
+      AND  NOT EXISTS (
+            SELECT 1 FROM TraProgresoLeccion pl
+            WHERE pl.leccion = l
+              AND pl.usuario.idUsuario = :idUsuario
+              AND pl.estCompletada = true
+      )
+""")
+long countLeccionesObligatoriasPendientes(
+        @Param("idUsuario") Integer idUsuario,
+        @Param("idModulo") Integer idModulo);
 }   
