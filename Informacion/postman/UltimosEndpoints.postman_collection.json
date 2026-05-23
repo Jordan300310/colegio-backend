@@ -1,0 +1,97 @@
+{
+  "info": {
+    "name": "Cursos Online - Ultimos Endpoints",
+    "description": "Endpoints nuevos o ajustados. Requieren JWT en Authorization: Bearer {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{adminToken}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "adminToken", "value": "PEGA_AQUI_TOKEN_ADMIN", "type": "string" },
+    { "key": "profesorToken", "value": "PEGA_AQUI_TOKEN_PROFESOR", "type": "string" },
+    { "key": "idProfesor", "value": "3", "type": "string" },
+    { "key": "idCurso", "value": "1", "type": "string" },
+    { "key": "idAnio", "value": "2", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Secciones",
+      "item": [
+        {
+          "name": "GET /secciones - Con filtros",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/secciones?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["secciones"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "desNombre,asc", "disabled": true },
+                { "key": "idCurso", "value": "{{idCurso}}", "disabled": true },
+                { "key": "idAnio", "value": "{{idAnio}}", "disabled": true },
+                { "key": "idProfesor", "value": "{{idProfesor}}", "disabled": true },
+                { "key": "estActiva", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Listado paginado con filtros opcionales. Activa los disabled para combinar."
+          }
+        },
+        {
+          "name": "GET /secciones/asignaciones - Por profesor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/secciones/asignaciones?idProfesor={{idProfesor}}&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["secciones", "asignaciones"],
+              "query": [
+                { "key": "idProfesor", "value": "{{idProfesor}}" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "desNombre,asc", "disabled": true },
+                { "key": "idCurso", "value": "{{idCurso}}", "disabled": true },
+                { "key": "idAnio", "value": "{{idAnio}}", "disabled": true },
+                { "key": "estActiva", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Admin. Devuelve secciones con flag de asignacion para el profesor indicado."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "GET /usuarios/sin-seccion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/sin-seccion?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "sin-seccion"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "desApellidos,asc", "disabled": true },
+                { "key": "busqueda", "value": "juan", "disabled": true },
+                { "key": "estActivo", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Admin. Lista alumnos sin seccion, con filtros opcionales."
+          }
+        }
+      ]
+    }
+  ]
+}

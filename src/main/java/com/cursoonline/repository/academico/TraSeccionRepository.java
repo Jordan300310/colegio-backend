@@ -19,6 +19,22 @@ public interface TraSeccionRepository extends JpaRepository<TraSeccion, Integer>
     Page<TraSeccion> findByAnioEscolar_IdAnioEscolarAndEstActivaTrue(
             Integer idAnioEscolar, Pageable pageable);
 
+        @Query("""
+                SELECT DISTINCT s FROM TraSeccion s
+                LEFT JOIN RelProfesorSeccion rps
+                             ON rps.seccion = s AND rps.estActivo = true
+                WHERE (:idCurso IS NULL OR s.curso.idCurso = :idCurso)
+                    AND (:idAnio IS NULL OR s.anioEscolar.idAnioEscolar = :idAnio)
+                    AND (:estActiva IS NULL OR s.estActiva = :estActiva)
+                    AND (:idProfesor IS NULL OR rps.profesor.idUsuario = :idProfesor)
+                """)
+        Page<TraSeccion> findConFiltros(
+                        @Param("idCurso") Integer idCurso,
+                        @Param("idAnio") Integer idAnio,
+                        @Param("idProfesor") Integer idProfesor,
+                        @Param("estActiva") Boolean estActiva,
+                        Pageable pageable);
+
     boolean existsByDesNombreAndCurso_IdCursoAndAnioEscolar_IdAnioEscolar(
             String desNombre, Integer idCurso, Integer idAnioEscolar);
 

@@ -15,6 +15,8 @@ public interface RelProfesorSeccionRepository extends JpaRepository<RelProfesorS
 
     List<RelProfesorSeccion> findByProfesor_IdUsuarioAndEstActivoTrue(Integer idUsuario);
 
+    List<RelProfesorSeccion> findBySeccion_IdSeccionInAndEstActivoTrue(List<Integer> idsSeccion);
+
     boolean existsByProfesor_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(
             Integer idUsuario, Integer idSeccion);
     

@@ -71,6 +71,22 @@ public class UsuarioController {
         );
     }
 
+    @GetMapping("/sin-seccion")
+    @PreAuthorize("hasAuthority('ROL_ADMIN')")
+    @Operation(
+        summary     = "Listar alumnos sin seccion",
+        description = "Devuelve alumnos activos o inactivos que no estan inscritos en ninguna seccion."
+    )
+    public ResponseEntity<ApiResponse<Page<UsuarioResponse>>> listarSinSeccion(
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) Boolean estActivo,
+            @PageableDefault(size = 10, sort = "desApellidos") @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Alumnos sin seccion obtenidos correctamente.",
+                usuarioService.listarAlumnosSinSeccion(busqueda, estActivo, pageable))
+        );
+    }
+
     // ── CUS-05: OBTENER USUARIO POR ID ────────────────────────────────────────
 
     @Operation(

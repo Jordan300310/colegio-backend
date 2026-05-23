@@ -5,6 +5,7 @@ import com.cursoonline.dto.academico.request.SeccionRequest;
 import com.cursoonline.dto.academico.response.InscripcionAlumnoResponse;
 import com.cursoonline.dto.academico.response.ProfesorSeccionResponse;
 import com.cursoonline.dto.academico.response.ResumenAnioEscolarResponse;
+import com.cursoonline.dto.academico.response.SeccionAsignacionResponse;
 import com.cursoonline.dto.academico.response.SeccionResponse;
 import com.cursoonline.dto.common.ApiResponse;
 import com.cursoonline.service.academico.SeccionService;
@@ -35,9 +36,14 @@ public class SeccionController {
     @Operation(summary = "Listar todas las secciones activas")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<SeccionResponse>>> listar(
+            @RequestParam(required = false) Integer idCurso,
+            @RequestParam(required = false) Integer idAnio,
+            @RequestParam(required = false) Integer idProfesor,
+            @RequestParam(required = false) Boolean estActiva,
             @PageableDefault(size = 10, sort = "desNombre") Pageable pageable) {
         return ResponseEntity.ok(
-                ApiResponse.ok("Secciones obtenidas correctamente.", seccionService.listar(pageable))
+                ApiResponse.ok("Secciones obtenidas correctamente.",
+                        seccionService.listarConFiltros(idCurso, idAnio, idProfesor, estActiva, pageable))
         );
     }
 
@@ -176,5 +182,19 @@ public class SeccionController {
         return ResponseEntity.ok(ApiResponse.ok(
                 "Asignaciones obtenidas.",
                 seccionService.listarAsignacionesConFiltros(idProfesor, idSeccion, idCurso, idAnio)));
+        }
+
+        @GetMapping("/asignaciones")
+        @PreAuthorize("hasAuthority('ROL_ADMIN')")
+        public ResponseEntity<ApiResponse<Page<SeccionAsignacionResponse>>> seccionesConAsignacion(
+                @RequestParam Integer idProfesor,
+                @RequestParam(required = false) Integer idCurso,
+                @RequestParam(required = false) Integer idAnio,
+                @RequestParam(required = false) Boolean estActiva,
+                @PageableDefault(size = 10, sort = "desNombre") Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Secciones con asignacion obtenidas.",
+                seccionService.listarSeccionesConAsignacionProfesor(
+                        idProfesor, idCurso, idAnio, estActiva, pageable)));
         }
 }

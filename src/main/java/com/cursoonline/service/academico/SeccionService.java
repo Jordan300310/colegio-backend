@@ -5,6 +5,7 @@ import com.cursoonline.dto.academico.request.SeccionRequest;
 import com.cursoonline.dto.academico.response.InscripcionAlumnoResponse;
 import com.cursoonline.dto.academico.response.ProfesorSeccionResponse;
 import com.cursoonline.dto.academico.response.ResumenAnioEscolarResponse;
+import com.cursoonline.dto.academico.response.SeccionAsignacionResponse;
 import com.cursoonline.dto.academico.response.SeccionResponse;
 import com.cursoonline.entity.academico.CatAnioEscolar;
 import com.cursoonline.entity.academico.CatCurso;
@@ -24,6 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import com.cursoonline.dto.academico.request.InscribirAlumnoRequest;
 @Slf4j
 @Service
@@ -43,6 +47,13 @@ public class SeccionService {
         return seccionRepository.findByEstActivaTrue(pageable)
                 .map(this::toResponse);
     }
+
+        public Page<SeccionResponse> listarConFiltros(
+                        Integer idCurso, Integer idAnio, Integer idProfesor,
+                        Boolean estActiva, Pageable pageable) {
+                return seccionRepository.findConFiltros(idCurso, idAnio, idProfesor, estActiva, pageable)
+                                .map(this::toResponse);
+        }
 
     public Page<SeccionResponse> listarPorCurso(Integer idCurso, Pageable pageable) {
         return seccionRepository.findByCurso_IdCursoAndEstActivaTrue(idCurso, pageable)
@@ -154,6 +165,62 @@ public class SeccionService {
                         rps.getFecAsignacion()))
                 .toList();
         }
+
+    public Page<SeccionAsignacionResponse> listarSeccionesConAsignacionProfesor(
+            Integer idProfesor, Integer idCurso, Integer idAnio,
+            Boolean estActiva, Pageable pageable) {
+
+        if (idProfesor == null) {
+            throw new IllegalArgumentException("El idProfesor es obligatorio.");
+        }
+
+        SegUsuario profesor = usuarioRepository.findById(idProfesor)
+                .orElseThrow(() -> new UsuarioNoEncontradoException(idProfesor));
+
+        if (!"ROL_PROFESOR".equals(profesor.getRol().getCodRol())) {
+            throw new UsuarioNoEsProfesorException(idProfesor);
+        }
+
+        Page<TraSeccion> secciones = seccionRepository
+                .findConFiltros(idCurso, idAnio, null, estActiva, pageable);
+
+        List<Integer> ids = secciones.getContent().stream()
+                .map(TraSeccion::getIdSeccion)
+                .toList();
+
+        Map<Integer, RelProfesorSeccion> asignaciones = profesorSeccionRepository
+                .findBySeccion_IdSeccionInAndEstActivoTrue(ids)
+                .stream()
+                .collect(Collectors.toMap(a -> a.getSeccion().getIdSeccion(), a -> a, (a, b) -> a));
+
+        Set<Integer> asignadasAlProfesor = profesorSeccionRepository
+                .findByProfesor_IdUsuarioAndEstActivoTrue(idProfesor)
+                .stream()
+                .map(rps -> rps.getSeccion().getIdSeccion())
+                .collect(Collectors.toSet());
+
+        return secciones.map(s -> {
+            RelProfesorSeccion asignacion = asignaciones.get(s.getIdSeccion());
+            Integer idProfesorAsignado = asignacion != null ? asignacion.getProfesor().getIdUsuario() : null;
+            String desProfesorAsignado = asignacion != null
+                    ? asignacion.getProfesor().getDesNombres() + " " + asignacion.getProfesor().getDesApellidos()
+                    : null;
+
+            return new SeccionAsignacionResponse(
+                    s.getIdSeccion(),
+                    s.getCurso().getIdCurso(),
+                    s.getCurso().getDesNombre(),
+                    s.getAnioEscolar().getIdAnioEscolar(),
+                    s.getAnioEscolar().getValAnio(),
+                    s.getDesNombre(),
+                    s.getEstActiva(),
+                    s.getFecCreacion(),
+                    idProfesorAsignado,
+                    desProfesorAsignado,
+                    asignadasAlProfesor.contains(s.getIdSeccion())
+            );
+        });
+    }
 
     // ── CUS-09: ASIGNAR PROFESOR ──────────────────────────────────────────────
 

@@ -405,6 +405,13 @@ public class UsuarioService {
                 .map(this::toResponse);
     }
 
+        public Page<UsuarioResponse> listarAlumnosSinSeccion(
+            String busqueda, Boolean estActivo, Pageable pageable) {
+        return usuarioRepository
+            .buscarConFiltros("ROL_ALUMNO", busqueda, estActivo, true, pageable)
+            .map(this::toResponse);
+        }
+
     // ── Actualizar nombre/correo (#2) ──
     @Transactional
     public UsuarioResponse actualizarDatos(Integer idUsuario, ActualizarDatosUsuarioRequest req) {
