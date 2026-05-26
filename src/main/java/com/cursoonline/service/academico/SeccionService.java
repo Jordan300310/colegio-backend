@@ -17,7 +17,7 @@ import com.cursoonline.exception.academico.*;
 import com.cursoonline.exception.usuario.UsuarioNoEncontradoException;
 import com.cursoonline.repository.academico.*;
 import com.cursoonline.repository.auth.SegUsuarioRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -352,6 +352,8 @@ public void darDeBajaAlumno(Integer idSeccion, Integer idUsuario) {
     alumnoSeccionRepository.save(inscripcion);
     log.info("Alumno {} dado de baja de sección {}", idUsuario, idSeccion);
 }
+
+@Transactional(readOnly= true)
 
 public List<InscripcionAlumnoResponse> listarAlumnosDeSeccion(Integer idSeccion) {
     if (!seccionRepository.existsById(idSeccion)) {

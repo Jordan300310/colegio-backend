@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "Cursos Online - Pruebas Unitarias",
+    "description": "Coleccion para validar autenticacion, seguridad, usuarios, academico, evaluaciones, progreso y reportes. Configura tokens e ids.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "adminToken", "value": "PEGA_AQUI_TOKEN_ADMIN", "type": "string" },
+    { "key": "profesorToken", "value": "PEGA_AQUI_TOKEN_PROFESOR", "type": "string" },
+    { "key": "alumnoToken", "value": "PEGA_AQUI_TOKEN_ALUMNO", "type": "string" },
+    { "key": "adminEmail", "value": "admin@colegio.edu", "type": "string" },
+    { "key": "adminPassword", "value": "Admin$2026", "type": "string" },
+    { "key": "profesorEmail", "value": "profesor@colegio.edu", "type": "string" },
+    { "key": "profesorPassword", "value": "Admin$2026", "type": "string" },
+    { "key": "alumnoEmail", "value": "alumno@colegio.edu", "type": "string" },
+    { "key": "alumnoPassword", "value": "Admin$2026", "type": "string" },
+    { "key": "idUsuario", "value": "2", "type": "string" },
+    { "key": "idAlumno", "value": "3", "type": "string" },
+    { "key": "idProfesor", "value": "2", "type": "string" },
+    { "key": "idCurso", "value": "1", "type": "string" },
+    { "key": "idModulo", "value": "1", "type": "string" },
+    { "key": "idLeccion", "value": "1", "type": "string" },
+    { "key": "idEvaluacion", "value": "1", "type": "string" },
+    { "key": "idIntento", "value": "1", "type": "string" },
+    { "key": "idPregunta", "value": "1", "type": "string" },
+    { "key": "idOpcion", "value": "1", "type": "string" },
+    { "key": "idSeccion", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Autenticacion",
+      "item": [
+        {
+          "name": "POST /auth/login - Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminEmail}}\",\n  \"contrasena\": \"{{adminPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /auth/login - Profesor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{profesorEmail}}\",\n  \"contrasena\": \"{{profesorPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /auth/login - Alumno",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{alumnoEmail}}\",\n  \"contrasena\": \"{{alumnoPassword}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seguridad",
+      "item": [
+        {
+          "name": "PUT /auth/cambiar-contrasena",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+              ]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/cambiar-contrasena",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "cambiar-contrasena"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contrasenaActual\": \"Admin$2026\",\n  \"nuevaContrasena\": \"Admin$2026A\",\n  \"confirmarContrasena\": \"Admin$2026A\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /auth/recuperar-credenciales/{id}",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/recuperar-credenciales/{{idUsuario}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "recuperar-credenciales", "{{idUsuario}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gestion de usuarios",
+      "item": [
+        {
+          "name": "POST /auth/registrar",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+              ]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/registrar",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "registrar"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Juan\",\n  \"apellidos\": \"Perez\",\n  \"correo\": \"juan.perez@colegio.edu\",\n  \"codRol\": \"ROL_ALUMNO\",\n  \"contrasenaTemporal\": \"Temporal$123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /usuarios/{id}/rol",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+              ]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idUsuario}}/rol",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "{{idUsuario}}", "rol"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codRol\": \"ROL_PROFESOR\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /usuarios/carga-masiva",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/carga-masiva",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "carga-masiva"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "archivo", "type": "file", "src": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gestion academica",
+      "item": [
+        {
+          "name": "GET /cursos/publicados",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{alumnoToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cursos/publicados?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["cursos", "publicados"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Evaluaciones",
+      "item": [
+        {
+          "name": "POST /intentos/evaluacion/{id}/iniciar",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{alumnoToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/intentos/evaluacion/{{idEvaluacion}}/iniciar",
+              "host": ["{{baseUrl}}"],
+              "path": ["intentos", "evaluacion", "{{idEvaluacion}}", "iniciar"]
+            }
+          }
+        },
+        {
+          "name": "PUT /intentos/{idIntento}/pregunta/{idPregunta}",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{alumnoToken}}", "type": "string" }
+              ]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/intentos/{{idIntento}}/pregunta/{{idPregunta}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["intentos", "{{idIntento}}", "pregunta", "{{idPregunta}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idOpcionElegida\": {{idOpcion}},\n  \"desRespuestaTexto\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /intentos/{idIntento}/finalizar",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{alumnoToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/intentos/{{idIntento}}/finalizar",
+              "host": ["{{baseUrl}}"],
+              "path": ["intentos", "{{idIntento}}", "finalizar"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Progreso",
+      "item": [
+        {
+          "name": "GET /progreso/mi-progreso",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{alumnoToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/progreso/mi-progreso",
+              "host": ["{{baseUrl}}"],
+              "path": ["progreso", "mi-progreso"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reportes",
+      "item": [
+        {
+          "name": "GET /reportes/seccion/{idSeccion}/grupal/pdf",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{profesorToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reportes/seccion/{{idSeccion}}/grupal/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["reportes", "seccion", "{{idSeccion}}", "grupal", "pdf"]
+            }
+          }
+        },
+        {
+          "name": "GET /reportes/seccion/{idSeccion}/grupal/excel",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{profesorToken}}", "type": "string" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reportes/seccion/{{idSeccion}}/grupal/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["reportes", "seccion", "{{idSeccion}}", "grupal", "excel"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
