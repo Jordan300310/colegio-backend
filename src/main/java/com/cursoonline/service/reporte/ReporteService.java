@@ -5,9 +5,14 @@ import com.cursoonline.dto.progreso.response.FilaTableroResponse;
 import com.cursoonline.dto.progreso.response.TableroSeccionResponse;
 import com.cursoonline.entity.auth.AudLogAcceso;
 import com.cursoonline.entity.auth.SegUsuario;
+import com.cursoonline.entity.academico.TraSeccion;
+import com.cursoonline.exception.academico.AlumnoNoMatriculadoException;
+import com.cursoonline.exception.academico.SeccionNoEncontradaException;
 import com.cursoonline.exception.reporte.ErrorGenerandoReporteException;
 import com.cursoonline.exception.reporte.SinDatosParaReporteException;
 import com.cursoonline.repository.auth.AudLogAccesoRepository;
+import com.cursoonline.repository.academico.RelAlumnoSeccionRepository;
+import com.cursoonline.repository.academico.TraSeccionRepository;
 import com.cursoonline.service.progreso.ProgresoService;
 import com.lowagie.text.Document;
 import com.lowagie.text.FontFactory;
@@ -47,6 +52,8 @@ public class ReporteService {
 
     private final ProgresoService            progresoService;
     private final AudLogAccesoRepository     accesoRepository;
+    private final TraSeccionRepository       seccionRepository;
+    private final RelAlumnoSeccionRepository alumnoSeccionRepository;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -166,7 +173,48 @@ public class ReporteService {
     public byte[] individualAlumnoExcel(Integer idAlumno, Integer idCurso, SegUsuario usuario) {
         DetalleProgresoAlumnoResponse d = progresoService
                 .obtenerProgresoAlumno(idAlumno, idCurso, usuario);
+        return buildIndividualExcel(d);
+    }
 
+    public byte[] individualAlumnoPdf(Integer idAlumno, Integer idCurso, SegUsuario usuario) {
+        DetalleProgresoAlumnoResponse d = progresoService
+                .obtenerProgresoAlumno(idAlumno, idCurso, usuario);
+        return buildIndividualPdf(d);
+    }
+
+    public byte[] individualAlumnoSeccionExcel(Integer idSeccion, Integer idAlumno, SegUsuario usuario) {
+        TraSeccion seccion = seccionRepository.findById(idSeccion)
+                .orElseThrow(() -> new SeccionNoEncontradaException(idSeccion));
+
+        if (alumnoSeccionRepository
+                .findByAlumno_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(idAlumno, idSeccion)
+                .isEmpty()) {
+            throw new AlumnoNoMatriculadoException();
+        }
+
+        DetalleProgresoAlumnoResponse d = progresoService
+                .obtenerProgresoAlumno(idAlumno, seccion.getCurso().getIdCurso(), usuario);
+
+        return buildIndividualExcel(d);
+    }
+
+    public byte[] individualAlumnoSeccionPdf(Integer idSeccion, Integer idAlumno, SegUsuario usuario) {
+        TraSeccion seccion = seccionRepository.findById(idSeccion)
+                .orElseThrow(() -> new SeccionNoEncontradaException(idSeccion));
+
+        if (alumnoSeccionRepository
+                .findByAlumno_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(idAlumno, idSeccion)
+                .isEmpty()) {
+            throw new AlumnoNoMatriculadoException();
+        }
+
+        DetalleProgresoAlumnoResponse d = progresoService
+                .obtenerProgresoAlumno(idAlumno, seccion.getCurso().getIdCurso(), usuario);
+
+        return buildIndividualPdf(d);
+    }
+
+    private byte[] buildIndividualExcel(DetalleProgresoAlumnoResponse d) {
         try (XSSFWorkbook wb = new XSSFWorkbook();
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
@@ -216,10 +264,7 @@ public class ReporteService {
         }
     }
 
-    public byte[] individualAlumnoPdf(Integer idAlumno, Integer idCurso, SegUsuario usuario) {
-        DetalleProgresoAlumnoResponse d = progresoService
-                .obtenerProgresoAlumno(idAlumno, idCurso, usuario);
-
+    private byte[] buildIndividualPdf(DetalleProgresoAlumnoResponse d) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document doc = new Document();
             PdfWriter.getInstance(doc, baos);

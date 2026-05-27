@@ -4,6 +4,8 @@ import com.cursoonline.dto.academico.request.CursoRequest;
 import com.cursoonline.dto.academico.response.CursoResponse;
 import com.cursoonline.entity.academico.CatCurso;
 import com.cursoonline.entity.academico.CatNivel;
+import com.cursoonline.entity.auth.SegUsuario;
+import com.cursoonline.exception.academico.AccesoCursoDenegadoException;
 import com.cursoonline.exception.academico.CursoNoEncontradoException;
 import com.cursoonline.exception.academico.CursoYaExisteException;
 import com.cursoonline.exception.academico.NivelNoEncontradoException;
@@ -123,20 +125,45 @@ public class CursoService {
     }
     public Page<CursoResponse> listarPublicadosPorAlumno(Integer idUsuario, Pageable pageable) {
     // Re-mapeamos el Sort para que apunte al alias 'c' (CatCurso) en vez del root 'ras' (RelAlumnoSeccion)
-    Sort sortRemapeado = Sort.by(
-            pageable.getSort().stream()
-                    .map(order -> new Sort.Order(order.getDirection(), "c." + order.getProperty()))
-                    .toList()
-    );
-
-    Pageable pageableCorregido = PageRequest.of(
-            pageable.getPageNumber(),
-            pageable.getPageSize(),
-            sortRemapeado.isEmpty() ? Sort.by("c.desNombre").ascending() : sortRemapeado
-    );
+    Pageable pageableCorregido = remapSortToCurso(pageable);
 
     return alumnoSeccionRepository
             .findCursosPublicadosByAlumno(idUsuario, pageableCorregido)
             .map(this::toResponse);
 }
+
+    public Page<CursoResponse> listarPublicadosPorAlumnoParaProfesor(
+            Integer idAlumno, SegUsuario usuario, Pageable pageable) {
+
+        boolean esAdmin = usuario.getRol() != null
+                && "ROL_ADMIN".equals(usuario.getRol().getCodRol());
+
+        if (esAdmin) {
+            return listarPublicadosPorAlumno(idAlumno, pageable);
+        }
+
+        if (usuario.getRol() == null || !"ROL_PROFESOR".equals(usuario.getRol().getCodRol())) {
+            throw new AccesoCursoDenegadoException();
+        }
+
+        Pageable pageableCorregido = remapSortToCurso(pageable);
+
+        return alumnoSeccionRepository
+                .findCursosPublicadosByAlumnoYProfesor(idAlumno, usuario.getIdUsuario(), pageableCorregido)
+                .map(this::toResponse);
+    }
+
+    private Pageable remapSortToCurso(Pageable pageable) {
+        Sort sortRemapeado = Sort.by(
+                pageable.getSort().stream()
+                        .map(order -> new Sort.Order(order.getDirection(), "c." + order.getProperty()))
+                        .toList()
+        );
+
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                sortRemapeado.isEmpty() ? Sort.by("c.desNombre").ascending() : sortRemapeado
+        );
+    }
 }

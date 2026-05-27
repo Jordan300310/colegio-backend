@@ -109,4 +109,23 @@ public ResponseEntity<ApiResponse<Page<CursoResponse>>> misCursos(
             )
     );
 }
+
+        @Operation(
+                summary     = "Cursos publicados de un alumno — ADMIN o PROFESOR",
+                description = "El profesor solo ve cursos donde está asignado; el admin ve todos."
+        )
+        @GetMapping("/alumno/{idAlumno}")
+        @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR')")
+        public ResponseEntity<ApiResponse<Page<CursoResponse>>> cursosPorAlumno(
+                        @PathVariable Integer idAlumno,
+                        @AuthenticationPrincipal SegUsuario usuario,
+                        @PageableDefault(size = 10, sort = "desNombre") Pageable pageable) {
+
+                return ResponseEntity.ok(
+                                ApiResponse.ok(
+                                                "Cursos del alumno obtenidos correctamente.",
+                                                cursoService.listarPublicadosPorAlumnoParaProfesor(idAlumno, usuario, pageable)
+                                )
+                );
+        }
 }

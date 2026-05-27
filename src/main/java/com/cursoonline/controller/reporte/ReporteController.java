@@ -74,6 +74,37 @@ public class ReporteController {
                 "historial-accesos.xlsx", MIME_XLSX);
     }
 
+    @GetMapping("/progreso")
+    @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR')")
+    public ResponseEntity<byte[]> progreso(
+            @RequestParam Integer idSeccion,
+            @RequestParam(required = false) Integer idAlumno,
+            @RequestParam String formato,
+            @AuthenticationPrincipal SegUsuario usuario) {
+
+        String fmt = formato.toLowerCase();
+        boolean excel = fmt.equals("excel") || fmt.equals("xlsx");
+        boolean pdf = fmt.equals("pdf");
+
+        if (!excel && !pdf) {
+            throw new IllegalArgumentException("Formato invalido. Use pdf o excel.");
+        }
+
+        if (idAlumno == null) {
+            return excel
+                    ? descarga(service.grupalSeccionExcel(idSeccion, usuario),
+                            "reporte-grupal-seccion-" + idSeccion + ".xlsx", MIME_XLSX)
+                    : descarga(service.grupalSeccionPdf(idSeccion, usuario),
+                            "reporte-grupal-seccion-" + idSeccion + ".pdf", "application/pdf");
+        }
+
+        return excel
+                ? descarga(service.individualAlumnoSeccionExcel(idSeccion, idAlumno, usuario),
+                        "reporte-alumno-" + idAlumno + "-seccion-" + idSeccion + ".xlsx", MIME_XLSX)
+                : descarga(service.individualAlumnoSeccionPdf(idSeccion, idAlumno, usuario),
+                        "reporte-alumno-" + idAlumno + "-seccion-" + idSeccion + ".pdf", "application/pdf");
+    }
+
     private ResponseEntity<byte[]> descarga(byte[] data, String filename, String mime) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(mime));

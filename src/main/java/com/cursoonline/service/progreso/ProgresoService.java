@@ -287,6 +287,28 @@ private void validarAccesoProfesorACurso(SegUsuario usuario, Integer idCurso) {
     );
 }
 
+public List<FilaTableroResponse> listarAlumnosNoAvance(
+        Integer idSeccion, int dias, double minAvance, SegUsuario usuario) {
+
+    TraSeccion seccion = seccionRepository.findById(idSeccion)
+            .orElseThrow(() -> new SeccionNoEncontradaException(idSeccion));
+
+    Integer idCurso = seccion.getCurso().getIdCurso();
+    validarAccesoProfesorACurso(usuario, idCurso);
+
+    Page<FilaTableroView> filas = progresoRepository
+            .findTableroPorSeccion(idSeccion, Pageable.unpaged());
+
+    LocalDateTime limite = LocalDateTime.now().minusDays(dias);
+
+    return filas.map(this::toFilaResponse)
+            .getContent()
+            .stream()
+            .filter(a -> a.porcentaje() < minAvance
+                    && (a.ultimaActividad() == null || a.ultimaActividad().isBefore(limite)))
+            .toList();
+}
+
 
 private ModuloDetalleResponse toModuloDetalle(List<HistorialLeccionView> filas) {
     HistorialLeccionView primera = filas.get(0);

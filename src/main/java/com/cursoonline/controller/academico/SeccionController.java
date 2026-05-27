@@ -1,6 +1,8 @@
 package com.cursoonline.controller.academico;
 
 import com.cursoonline.dto.academico.request.AsignarProfesorRequest;
+import com.cursoonline.dto.academico.request.AsignarProfesorSeccionesRequest;
+import com.cursoonline.dto.academico.request.InscribirAlumnosRequest;
 import com.cursoonline.dto.academico.request.SeccionRequest;
 import com.cursoonline.dto.academico.response.InscripcionAlumnoResponse;
 import com.cursoonline.dto.academico.response.ProfesorSeccionResponse;
@@ -21,8 +23,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.cursoonline.dto.academico.request.InscribirAlumnoRequest;
+import com.cursoonline.entity.auth.SegUsuario;
 import java.util.List;
 @RestController
 @RequestMapping("/secciones")
@@ -145,6 +149,18 @@ public class SeccionController {
         );
         }
 
+        @Operation(summary = "Inscribir varios alumnos en una sección — Solo ADMIN")
+        @PostMapping("/{idSeccion}/alumnos/lote")
+        @PreAuthorize("hasAuthority('ROL_ADMIN')")
+        public ResponseEntity<ApiResponse<List<InscripcionAlumnoResponse>>> inscribirAlumnosLote(
+                @PathVariable Integer idSeccion,
+                @Valid @RequestBody InscribirAlumnosRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.ok("Alumnos inscritos correctamente.",
+                        seccionService.inscribirAlumnosLote(idSeccion, request))
+        );
+        }
+
         @Operation(summary = "Dar de baja un alumno de una sección — Solo ADMIN")
         @DeleteMapping("/{idSeccion}/alumnos/{idUsuario}")
         @PreAuthorize("hasAuthority('ROL_ADMIN')")
@@ -153,6 +169,51 @@ public class SeccionController {
                 @PathVariable Integer idUsuario) {
         seccionService.darDeBajaAlumno(idSeccion, idUsuario);
         return ResponseEntity.ok(ApiResponse.ok("Alumno dado de baja correctamente."));
+        }
+
+        @Operation(summary = "Dar de baja varios alumnos de una sección — Solo ADMIN")
+        @DeleteMapping("/{idSeccion}/alumnos/lote")
+        @PreAuthorize("hasAuthority('ROL_ADMIN')")
+        public ResponseEntity<ApiResponse<Void>> darDeBajaAlumnosLote(
+                @PathVariable Integer idSeccion,
+                @Valid @RequestBody InscribirAlumnosRequest request) {
+        seccionService.darDeBajaAlumnosLote(idSeccion, request);
+        return ResponseEntity.ok(ApiResponse.ok("Alumnos dados de baja correctamente."));
+        }
+
+        @Operation(summary = "Asignar un profesor a varias secciones — Solo ADMIN")
+        @PostMapping("/profesor/{idProfesor}/secciones")
+        @PreAuthorize("hasAuthority('ROL_ADMIN')")
+        public ResponseEntity<ApiResponse<List<SeccionResponse>>> asignarProfesorSecciones(
+                @PathVariable Integer idProfesor,
+                @Valid @RequestBody AsignarProfesorSeccionesRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.ok("Secciones asignadas al profesor correctamente.",
+                        seccionService.asignarProfesorSecciones(idProfesor, request))
+        );
+        }
+
+        @Operation(summary = "Remover un profesor de varias secciones — Solo ADMIN")
+        @DeleteMapping("/profesor/{idProfesor}/secciones")
+        @PreAuthorize("hasAuthority('ROL_ADMIN')")
+        public ResponseEntity<ApiResponse<Void>> removerProfesorSecciones(
+                @PathVariable Integer idProfesor,
+                @Valid @RequestBody AsignarProfesorSeccionesRequest request) {
+        seccionService.removerProfesorSecciones(idProfesor, request);
+        return ResponseEntity.ok(ApiResponse.ok("Secciones removidas del profesor correctamente."));
+        }
+
+        @Operation(summary = "Listar alumnos de una sección por profesor — ADMIN o PROFESOR")
+        @GetMapping("/{idSeccion}/profesor/{idProfesor}/alumnos")
+        @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR')")
+        public ResponseEntity<ApiResponse<List<InscripcionAlumnoResponse>>> listarAlumnosDeProfesor(
+                @PathVariable Integer idSeccion,
+                @PathVariable Integer idProfesor,
+                @AuthenticationPrincipal SegUsuario usuario) {
+        return ResponseEntity.ok(
+                ApiResponse.ok("Alumnos de la sección obtenidos correctamente.",
+                        seccionService.listarAlumnosDeSeccionParaProfesor(idSeccion, idProfesor, usuario))
+        );
         }
 
         @GetMapping("/anios-escolares/{idAnio}/resumen")

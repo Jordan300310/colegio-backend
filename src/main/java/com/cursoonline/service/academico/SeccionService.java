@@ -1,6 +1,7 @@
 package com.cursoonline.service.academico;
 
 import com.cursoonline.dto.academico.request.AsignarProfesorRequest;
+import com.cursoonline.dto.academico.request.AsignarProfesorSeccionesRequest;
 import com.cursoonline.dto.academico.request.SeccionRequest;
 import com.cursoonline.dto.academico.response.InscripcionAlumnoResponse;
 import com.cursoonline.dto.academico.response.ProfesorSeccionResponse;
@@ -29,6 +30,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import com.cursoonline.dto.academico.request.InscribirAlumnoRequest;
+import com.cursoonline.dto.academico.request.InscribirAlumnosRequest;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.HashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -341,6 +346,68 @@ public InscripcionAlumnoResponse inscribirAlumno(Integer idSeccion,
 }
 
 @Transactional
+public List<InscripcionAlumnoResponse> inscribirAlumnosLote(
+                Integer idSeccion, InscribirAlumnosRequest request) {
+
+        List<Integer> ids = request.idsAlumno();
+        if (ids == null || ids.isEmpty()) {
+                throw new IllegalArgumentException("La lista de alumnos no puede estar vacia.");
+        }
+
+        TraSeccion seccion = seccionRepository.findById(idSeccion)
+                        .orElseThrow(() -> new SeccionNoEncontradaException(idSeccion));
+
+        Integer idAnio = seccion.getAnioEscolar().getIdAnioEscolar();
+        Set<Integer> idsUnicos = new LinkedHashSet<>(ids);
+        List<SegUsuario> usuarios = usuarioRepository.findAllById(idsUnicos);
+        Map<Integer, SegUsuario> mapa = new HashMap<>();
+        for (SegUsuario u : usuarios) {
+                mapa.put(u.getIdUsuario(), u);
+        }
+
+        List<String> errores = new ArrayList<>();
+        for (Integer idAlumno : idsUnicos) {
+                SegUsuario alumno = mapa.get(idAlumno);
+                if (alumno == null) {
+                        errores.add(idAlumno + ": no existe");
+                        continue;
+                }
+                if (!"ROL_ALUMNO".equals(alumno.getRol().getCodRol())) {
+                        errores.add(idAlumno + ": no es alumno");
+                        continue;
+                }
+                if (alumnoSeccionRepository
+                                .findByAlumno_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(idAlumno, idSeccion)
+                                .isPresent()) {
+                        errores.add(idAlumno + ": ya inscrito en la seccion");
+                        continue;
+                }
+                if (alumnoSeccionRepository.alumnoTieneInscripcionEnAnio(idAlumno, idAnio)) {
+                        errores.add(idAlumno + ": ya inscrito en otra seccion del anio");
+                }
+        }
+
+        if (!errores.isEmpty()) {
+                throw new IllegalArgumentException(
+                                "Operacion cancelada. IDs con error: " + String.join(", ", errores));
+        }
+
+        List<InscripcionAlumnoResponse> result = new ArrayList<>();
+        for (Integer idAlumno : idsUnicos) {
+                SegUsuario alumno = mapa.get(idAlumno);
+                RelAlumnoSeccion inscripcion = RelAlumnoSeccion.builder()
+                                .alumno(alumno)
+                                .seccion(seccion)
+                                .estActivo(true)
+                                .build();
+                alumnoSeccionRepository.save(inscripcion);
+                result.add(toInscripcionResponse(inscripcion));
+        }
+
+        return result;
+}
+
+@Transactional
 public void darDeBajaAlumno(Integer idSeccion, Integer idUsuario) {
 
     RelAlumnoSeccion inscripcion = alumnoSeccionRepository
@@ -351,6 +418,143 @@ public void darDeBajaAlumno(Integer idSeccion, Integer idUsuario) {
     inscripcion.setEstActivo(false);
     alumnoSeccionRepository.save(inscripcion);
     log.info("Alumno {} dado de baja de sección {}", idUsuario, idSeccion);
+}
+
+@Transactional
+public void darDeBajaAlumnosLote(Integer idSeccion, InscribirAlumnosRequest request) {
+        List<Integer> ids = request.idsAlumno();
+        if (ids == null || ids.isEmpty()) {
+                throw new IllegalArgumentException("La lista de alumnos no puede estar vacia.");
+        }
+
+        if (!seccionRepository.existsById(idSeccion)) {
+                throw new SeccionNoEncontradaException(idSeccion);
+        }
+
+        Set<Integer> idsUnicos = new LinkedHashSet<>(ids);
+        List<String> errores = new ArrayList<>();
+        List<RelAlumnoSeccion> inscripciones = new ArrayList<>();
+
+        for (Integer idAlumno : idsUnicos) {
+                Optional<RelAlumnoSeccion> inscripcion = alumnoSeccionRepository
+                                .findByAlumno_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(idAlumno, idSeccion);
+                if (inscripcion.isEmpty()) {
+                        errores.add(idAlumno + ": no esta inscrito en la seccion");
+                } else {
+                        inscripciones.add(inscripcion.get());
+                }
+        }
+
+        if (!errores.isEmpty()) {
+                throw new IllegalArgumentException(
+                                "Operacion cancelada. IDs con error: " + String.join(", ", errores));
+        }
+
+        for (RelAlumnoSeccion ins : inscripciones) {
+                ins.setEstActivo(false);
+                alumnoSeccionRepository.save(ins);
+        }
+}
+
+@Transactional
+public List<SeccionResponse> asignarProfesorSecciones(
+                Integer idProfesor, AsignarProfesorSeccionesRequest request) {
+
+        List<Integer> ids = request.idsSeccion();
+        if (ids == null || ids.isEmpty()) {
+                throw new IllegalArgumentException("La lista de secciones no puede estar vacia.");
+        }
+
+        SegUsuario profesor = usuarioRepository.findById(idProfesor)
+                        .orElseThrow(() -> new UsuarioNoEncontradoException(idProfesor));
+
+        if (!"ROL_PROFESOR".equals(profesor.getRol().getCodRol())) {
+                throw new UsuarioNoEsProfesorException(idProfesor);
+        }
+
+        Set<Integer> idsUnicos = new LinkedHashSet<>(ids);
+        List<TraSeccion> secciones = seccionRepository.findAllById(idsUnicos);
+        Map<Integer, TraSeccion> mapa = new HashMap<>();
+        for (TraSeccion s : secciones) {
+                mapa.put(s.getIdSeccion(), s);
+        }
+
+        List<String> errores = new ArrayList<>();
+        for (Integer idSeccion : idsUnicos) {
+                TraSeccion seccion = mapa.get(idSeccion);
+                if (seccion == null) {
+                        errores.add(idSeccion + ": seccion no existe");
+                        continue;
+                }
+                if (profesorSeccionRepository
+                                .findBySeccion_IdSeccionAndEstActivoTrue(idSeccion)
+                                .isPresent()) {
+                        errores.add(idSeccion + ": seccion ya tiene profesor asignado");
+                }
+        }
+
+        if (!errores.isEmpty()) {
+                throw new IllegalArgumentException(
+                                "Operacion cancelada. IDs con error: " + String.join(", ", errores));
+        }
+
+        List<SeccionResponse> result = new ArrayList<>();
+        for (Integer idSeccion : idsUnicos) {
+                TraSeccion seccion = mapa.get(idSeccion);
+                RelProfesorSeccion asignacion = RelProfesorSeccion.builder()
+                                .profesor(profesor)
+                                .seccion(seccion)
+                                .estActivo(true)
+                                .build();
+                profesorSeccionRepository.save(asignacion);
+                result.add(toResponse(seccion));
+        }
+        return result;
+}
+
+@Transactional
+public void removerProfesorSecciones(
+                Integer idProfesor, AsignarProfesorSeccionesRequest request) {
+
+        List<Integer> ids = request.idsSeccion();
+        if (ids == null || ids.isEmpty()) {
+                throw new IllegalArgumentException("La lista de secciones no puede estar vacia.");
+        }
+
+        SegUsuario profesor = usuarioRepository.findById(idProfesor)
+                        .orElseThrow(() -> new UsuarioNoEncontradoException(idProfesor));
+
+        if (!"ROL_PROFESOR".equals(profesor.getRol().getCodRol())) {
+                throw new UsuarioNoEsProfesorException(idProfesor);
+        }
+
+        Set<Integer> idsUnicos = new LinkedHashSet<>(ids);
+        List<String> errores = new ArrayList<>();
+        List<RelProfesorSeccion> asignaciones = new ArrayList<>();
+
+        for (Integer idSeccion : idsUnicos) {
+                Optional<RelProfesorSeccion> asignacion = profesorSeccionRepository
+                                .findBySeccion_IdSeccionAndEstActivoTrue(idSeccion);
+                if (asignacion.isEmpty()) {
+                        errores.add(idSeccion + ": la seccion no tiene profesor asignado");
+                        continue;
+                }
+                if (!asignacion.get().getProfesor().getIdUsuario().equals(idProfesor)) {
+                        errores.add(idSeccion + ": la seccion esta asignada a otro profesor");
+                        continue;
+                }
+                asignaciones.add(asignacion.get());
+        }
+
+        if (!errores.isEmpty()) {
+                throw new IllegalArgumentException(
+                                "Operacion cancelada. IDs con error: " + String.join(", ", errores));
+        }
+
+        for (RelProfesorSeccion asignacion : asignaciones) {
+                asignacion.setEstActivo(false);
+                profesorSeccionRepository.save(asignacion);
+        }
 }
 
 @Transactional(readOnly= true)
@@ -365,6 +569,29 @@ public List<InscripcionAlumnoResponse> listarAlumnosDeSeccion(Integer idSeccion)
             .stream()
             .map(this::toInscripcionResponse)
             .toList();
+}
+
+@Transactional(readOnly = true)
+public List<InscripcionAlumnoResponse> listarAlumnosDeSeccionParaProfesor(
+                Integer idSeccion, Integer idProfesor, SegUsuario usuario) {
+
+        if (!seccionRepository.existsById(idSeccion)) {
+                throw new SeccionNoEncontradaException(idSeccion);
+        }
+
+        boolean esAdmin = usuario.getRol() != null
+                        && "ROL_ADMIN".equals(usuario.getRol().getCodRol());
+        if (!esAdmin && !usuario.getIdUsuario().equals(idProfesor)) {
+                throw new AccesoCursoDenegadoException();
+        }
+
+        boolean asignado = profesorSeccionRepository
+                        .existsByProfesor_IdUsuarioAndSeccion_IdSeccionAndEstActivoTrue(idProfesor, idSeccion);
+        if (!asignado) {
+                throw new AccesoCursoDenegadoException();
+        }
+
+        return listarAlumnosDeSeccion(idSeccion);
 }
 
 // ── Mapper privado ────────────────────────────────────────────────────────

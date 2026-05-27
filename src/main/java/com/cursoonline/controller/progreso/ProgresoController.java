@@ -2,6 +2,7 @@ package com.cursoonline.controller.progreso;
 
 import com.cursoonline.dto.common.ApiResponse;
 import com.cursoonline.dto.progreso.response.DetalleProgresoAlumnoResponse;
+import com.cursoonline.dto.progreso.response.FilaTableroResponse;
 import com.cursoonline.dto.progreso.response.ProgresoCursoResponse;
 import com.cursoonline.dto.progreso.response.ProgresoLeccionResponse;
 import com.cursoonline.dto.progreso.response.TableroSeccionResponse;
@@ -77,6 +78,21 @@ public class ProgresoController {
                 .obtenerProgresoAlumno(idAlumno, idCurso, profesor);
         return ResponseEntity.ok(
                 ApiResponse.ok("Detalle obtenido.", data));
+    }
+
+    @GetMapping("/no-avanzan")
+    @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR')")
+    @Operation(summary = "Listar alumnos con bajo avance y sin actividad reciente")
+    public ResponseEntity<ApiResponse<List<FilaTableroResponse>>> alumnosNoAvanzan(
+            @RequestParam Integer idSeccion,
+            @RequestParam(defaultValue = "7") int dias,
+            @RequestParam(defaultValue = "50") double minAvance,
+            @AuthenticationPrincipal SegUsuario usuario) {
+
+        List<FilaTableroResponse> data = service
+                .listarAlumnosNoAvance(idSeccion, dias, minAvance, usuario);
+        return ResponseEntity.ok(
+                ApiResponse.ok("Alumnos sin avance obtenidos.", data));
     }
     
 }
