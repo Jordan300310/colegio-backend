@@ -10,6 +10,7 @@ import com.cursoonline.exception.academico.ModuloNoEncontradoException;
 import com.cursoonline.exception.evaluacion.EvaluacionActivaException;
 import com.cursoonline.exception.evaluacion.EvaluacionNoEncontradaException;
 import com.cursoonline.exception.evaluacion.EvaluacionYaExisteException;
+import com.cursoonline.repository.academico.RelAlumnoSeccionRepository;
 import com.cursoonline.repository.academico.RelProfesorSeccionRepository;
 import com.cursoonline.repository.academico.TraModuloRepository;
 import com.cursoonline.repository.evaluacion.TraEvaluacionRepository;
@@ -29,6 +30,7 @@ public class EvaluacionService {
     private final TraEvaluacionRepository       evaluacionRepository;
     private final TraModuloRepository           moduloRepository;
     private final RelProfesorSeccionRepository  profesorSeccionRepository;
+    private final RelAlumnoSeccionRepository    alumnoSeccionRepository;
 
     public List<EvaluacionResponse> listarPorModulo(Integer idModulo, SegUsuario usuario) {
         TraModulo modulo = moduloRepository.findById(idModulo)
@@ -119,12 +121,19 @@ public class EvaluacionService {
 
     private void validarAccesoAlCurso(SegUsuario usuario, Integer idCurso) {
         if ("ROL_ADMIN".equals(usuario.getRol().getCodRol())) return;
+
         if ("ROL_PROFESOR".equals(usuario.getRol().getCodRol())) {
-            boolean tieneAcceso = profesorSeccionRepository
-                    .profesorTieneAccesoACurso(usuario.getIdUsuario(), idCurso);
-            if (!tieneAcceso) throw new AccesoCursoDenegadoException();
+            if (!profesorSeccionRepository.profesorTieneAccesoACurso(usuario.getIdUsuario(), idCurso))
+                throw new AccesoCursoDenegadoException();
             return;
         }
+
+        if ("ROL_ALUMNO".equals(usuario.getRol().getCodRol())) {
+            if (!alumnoSeccionRepository.alumnoTieneAccesoACurso(usuario.getIdUsuario(), idCurso))
+                throw new AccesoCursoDenegadoException();
+            return;
+        }
+
         throw new AccesoCursoDenegadoException();
     }
 

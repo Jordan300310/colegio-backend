@@ -27,6 +27,7 @@ public class EvaluacionController {
     private final EvaluacionService service;
 
     @GetMapping("/modulo/{idModulo}")
+    @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR','ROL_ALUMNO')")
     public ResponseEntity<ApiResponse<List<EvaluacionResponse>>> listarPorModulo(
             @PathVariable Integer idModulo,
             @AuthenticationPrincipal SegUsuario usuario) {
@@ -35,6 +36,7 @@ public class EvaluacionController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR','ROL_ALUMNO')")
     public ResponseEntity<ApiResponse<EvaluacionResponse>> obtener(
             @PathVariable Integer id,
             @AuthenticationPrincipal SegUsuario usuario) {

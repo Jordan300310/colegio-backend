@@ -26,9 +26,9 @@ public interface SegUsuarioRepository extends JpaRepository<SegUsuario, Integer>
     SELECT u FROM SegUsuario u
     WHERE (:codRol IS NULL OR u.rol.codRol = :codRol)
       AND (:busqueda IS NULL
-           OR LOWER(u.desNombres)   LIKE LOWER(CONCAT('%', :busqueda, '%'))
-           OR LOWER(u.desApellidos) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-           OR LOWER(u.desCorreo)    LIKE LOWER(CONCAT('%', :busqueda, '%')))
+           OR LOWER(u.desNombres)   LIKE LOWER(CONCAT('%', CAST(:busqueda AS string), '%'))
+           OR LOWER(u.desApellidos) LIKE LOWER(CONCAT('%', CAST(:busqueda AS string), '%'))
+           OR LOWER(u.desCorreo)    LIKE LOWER(CONCAT('%', CAST(:busqueda AS string), '%')))
       AND (:estActivo IS NULL OR u.estActivo = :estActivo)
       AND (
           :sinSeccion = false

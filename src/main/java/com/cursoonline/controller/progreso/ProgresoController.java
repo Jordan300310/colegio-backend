@@ -94,5 +94,20 @@ public class ProgresoController {
         return ResponseEntity.ok(
                 ApiResponse.ok("Alumnos sin avance obtenidos.", data));
     }
+
+    @GetMapping("/no-avanzan/{idSeccion}")
+    @PreAuthorize("hasAnyAuthority('ROL_ADMIN','ROL_PROFESOR')")
+    @Operation(summary = "Listar alumnos con bajo avance y sin actividad reciente")
+    public ResponseEntity<ApiResponse<List<FilaTableroResponse>>> alumnosNoAvanzanRuta(
+            @PathVariable Integer idSeccion,
+            @RequestParam(defaultValue = "7") int dias,
+            @RequestParam(defaultValue = "50") double minAvance,
+            @AuthenticationPrincipal SegUsuario usuario) {
+
+        List<FilaTableroResponse> data = service
+                .listarAlumnosNoAvance(idSeccion, dias, minAvance, usuario);
+        return ResponseEntity.ok(
+                ApiResponse.ok("Alumnos sin avance obtenidos.", data));
+    }
     
 }
