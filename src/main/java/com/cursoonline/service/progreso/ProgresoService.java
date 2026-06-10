@@ -7,10 +7,13 @@ import com.cursoonline.dto.progreso.response.FilaTableroResponse;
 import com.cursoonline.dto.progreso.response.LeccionEstadoResponse;
 import com.cursoonline.dto.progreso.response.ModuloDetalleResponse;
 import com.cursoonline.dto.progreso.response.ModuloProgresoResponse;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import com.cursoonline.dto.progreso.response.ProgresoCursoResponse;
 import com.cursoonline.dto.progreso.response.ProgresoLeccionResponse;
 import com.cursoonline.dto.progreso.response.TableroSeccionResponse;
 import com.cursoonline.entity.academico.CatCurso;
+import java.util.Objects;
 import com.cursoonline.entity.academico.TraLeccion;
 import com.cursoonline.entity.academico.TraSeccion;
 import com.cursoonline.entity.auth.SegUsuario;
@@ -128,9 +131,9 @@ private final CatCursoRepository    cursoRepository;
 
     Integer idCurso = seccion.getCurso().getIdCurso();
     validarAccesoProfesorACurso(profesor, idCurso);
-
+    Pageable pageableCorregido = corregirPageableParaTablero(pageable);
     Page<FilaTableroView> filas = progresoRepository
-            .findTableroPorSeccion(idSeccion, pageable);
+           .findTableroPorSeccion(idSeccion, pageableCorregido);;
 
     Page<FilaTableroResponse> alumnos = filas.map(this::toFilaResponse);
 
@@ -147,6 +150,27 @@ private final CatCursoRepository    cursoRepository;
             alumnos
     );
         }
+        private Pageable corregirPageableParaTablero(Pageable pageable) {
+        Sort sortCorregido = Sort.by(
+            pageable.getSort().stream()
+                .map(order -> {
+                    return switch (order.getProperty()) {
+                        case "nombres" -> new Sort.Order(order.getDirection(), "alumno.desNombres");
+                        case "apellidos" -> new Sort.Order(order.getDirection(), "alumno.desApellidos");
+                        default -> null;
+                    };
+                })
+                .filter(Objects::nonNull)
+                .toList()
+        );
+
+        if (sortCorregido.isEmpty()) {
+            sortCorregido = Sort.by("alumno.desApellidos").ascending();
+        }
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortCorregido);
+    }
+
 
 private void validarAccesoProfesorACurso(SegUsuario usuario, Integer idCurso) {
     // 1. Verificación segura: Si es Admin, se salta la validación de inmediato
