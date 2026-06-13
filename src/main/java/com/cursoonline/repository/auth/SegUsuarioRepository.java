@@ -26,9 +26,9 @@ public interface SegUsuarioRepository extends JpaRepository<SegUsuario, Integer>
     SELECT u FROM SegUsuario u
     WHERE (:codRol IS NULL OR u.rol.codRol = :codRol)
       AND (:busqueda IS NULL
-           OR LOWER(u.desNombres)   LIKE LOWER(CONCAT('%', :busqueda, '%'))
-           OR LOWER(u.desApellidos) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-           OR LOWER(u.desCorreo)    LIKE LOWER(CONCAT('%', :busqueda, '%')))
+           OR LOWER(u.desNombres)   LIKE :busqueda
+           OR LOWER(u.desApellidos) LIKE :busqueda
+           OR LOWER(u.desCorreo)    LIKE :busqueda)
       AND (:estActivo IS NULL OR u.estActivo = :estActivo)
       AND (
           :sinSeccion = false
@@ -46,6 +46,5 @@ public interface SegUsuarioRepository extends JpaRepository<SegUsuario, Integer>
             @Param("sinSeccion") boolean sinSeccion,
             Pageable pageable);
 
-    // Para validar unicidad de correo al actualizar (excluye al propio usuario)
     boolean existsByDesCorreoAndIdUsuarioNot(String correo, Integer idUsuario);
 }

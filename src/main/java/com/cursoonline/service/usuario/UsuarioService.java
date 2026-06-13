@@ -397,14 +397,14 @@ public class UsuarioService {
         
 
     // ── Listado filtrado (#1, #5, #6) ──
-    public Page<UsuarioResponse> listarConFiltros(
-            String codRol, String busqueda, Boolean estActivo,
-            boolean sinSeccion, Pageable pageable) {
-                 String busquedaTerm = busqueda == null ? null : "%" + busqueda + "%";
-        return usuarioRepository
-                    .buscarConFiltros(codRol, busquedaTerm, estActivo, sinSeccion, pageable)
-                .map(this::toResponse);
-    }
+   public Page<UsuarioResponse> listarConFiltros(
+        String codRol, String busqueda, Boolean estActivo,
+        boolean sinSeccion, Pageable pageable) {
+    String busquedaTerm = busqueda == null ? null : "%" + busqueda.toLowerCase() + "%";
+    return usuarioRepository
+            .buscarConFiltros(codRol, busquedaTerm, estActivo, sinSeccion, pageable)
+            .map(this::toResponse);
+}
 
         public Page<UsuarioResponse> listarAlumnosSinSeccion(
             String busqueda, Boolean estActivo, Pageable pageable) {
